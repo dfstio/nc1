@@ -8,7 +8,7 @@ import {
   AccountUpdate,
   UInt32,
 } from "o1js";
-import { Message, MAX_USERS } from "./message";
+import { Message, MAX_USERS, MessageEvent } from "./message";
 
 const NUMBER_OF_USERS = MAX_USERS;
 const FAUCET_AMOUNT = 1_000_000_000n;
@@ -25,6 +25,7 @@ describe("Message SmartContract", () => {
   const users: PublicKey[] = [];
   const extraUserPrivateKey = Local.testAccounts[1].privateKey;
   const extraUser = extraUserPrivateKey.toPublicKey();
+  const messages: Field[] = [];
 
   it(`should compile the SmartContract`, async () => {
     console.log("Compiling the SmartContract...");
@@ -51,6 +52,14 @@ describe("Message SmartContract", () => {
       users.push(userPrivateKey.toPublicKey());
     }
     console.timeEnd("Created users");
+  });
+
+  it(`should create messages`, async () => {
+    console.time("Created messages");
+    for (let i = 0; i < NUMBER_OF_USERS; i++) {
+      messages.push(Field.random());
+    }
+    console.timeEnd("Created messages");
   });
 
   it(`should fund users's accounts`, async () => {
@@ -130,7 +139,7 @@ describe("Message SmartContract", () => {
     console.time("Sent messages");
     for (let i = 0; i < NUMBER_OF_USERS; i++) {
       const tx = await Mina.transaction({ sender: users[i] }, () => {
-        zkApp.sendMessage(Field.random());
+        zkApp.sendMessage(messages[i]);
       });
       await tx.prove();
       await tx.sign([usersPrivateKeys[i]]).send();
@@ -138,11 +147,27 @@ describe("Message SmartContract", () => {
     console.timeEnd("Sent messages");
   });
 
+  it(`should check events`, async () => {
+    const events = await zkApp.fetchEvents();
+    expect(events.length).toBe(NUMBER_OF_USERS * 2);
+    const messageEvents = events.filter((event) => event.type === "message");
+    expect(messageEvents.length).toBe(NUMBER_OF_USERS);
+    const addEvents = events.filter((event) => event.type === "add");
+    expect(addEvents.length).toBe(NUMBER_OF_USERS);
+    for (let i = 0; i < NUMBER_OF_USERS; i++) {
+      const message: MessageEvent = messageEvents[i].event
+        .data as unknown as MessageEvent;
+      expect(messageEvents[i].type).toBe("message");
+      expect(message.sender.toBase58()).toBe(users[i].toBase58());
+      expect(message.message.toJSON()).toBe(messages[i].toJSON());
+    }
+  });
+
   it(`should not send message second time`, async () => {
     let sent = true;
     try {
       await Mina.transaction({ sender: users[0] }, () => {
-        zkApp.sendMessage(Field.random());
+        zkApp.sendMessage(messages[0]);
       });
     } catch (e) {
       sent = false;
@@ -150,15 +175,20 @@ describe("Message SmartContract", () => {
     expect(sent).toBe(false);
   });
 
-  it(`should not send messages from extra user`, async () => {
+  it(`should not send message from extra user`, async () => {
     let sent = true;
     try {
       await Mina.transaction({ sender: extraUser }, () => {
-        zkApp.sendMessage(Field.random());
+        zkApp.sendMessage(messages[0]);
       });
     } catch (e) {
       sent = false;
     }
     expect(sent).toBe(false);
+  });
+
+  it(`should check the counter`, async () => {
+    const counter = zkApp.counter.get();
+    expect(Number(counter.toBigint())).toBe(NUMBER_OF_USERS);
   });
 });
