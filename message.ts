@@ -15,7 +15,7 @@ import {
   Provable,
 } from "o1js";
 
-export const MAX_USERS = 10;
+export const MAX_USERS = 100;
 
 export class MessageEvent extends Struct({
   sender: PublicKey,

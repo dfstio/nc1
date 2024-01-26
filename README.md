@@ -99,7 +99,7 @@ https://docs.minaprotocol.com/zkapps/o1js/bitwise-operations
 
 https://blog.o1labs.org/whats-new-in-o1js-january-2024-ea2a38b6bd6c
 
-- Discussion
+- Discussions
 
 https://discord.com/channels/484437221055922177/1195376536379994132
 https://discord.com/channels/484437221055922177/915745847692636181/1038786367532056586
