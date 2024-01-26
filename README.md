@@ -10,6 +10,18 @@ Token accounts can be used for the storage of all the information required. The 
 
 This storage is cheap and it is used in this implementation
 
+## Assumptions
+
+The purpose of this challenge is to demonstrate a principal solution, a full solution with UI is not required, therefore to simplify the code we can use the following assumptions that do not contradict the challenge's text:
+
+- Testing on a local blockchain is enough. This will allow us to omit the parts of the code that
+  - fetch accounts from the Mina node
+  - handle nonce and transaction fee
+  - handle instability of the archive node
+- Archive node storage is a suitable data structure. Actions are stored on the archive node and not in the blockchain state.
+- There is no requirement for the sender address would be a part of the proof. This will allow the use this.sender instead of the signatures that will be needed otherwise, before the [additions to the protocol](https://discord.com/channels/484437221055922177/1185288593099456565/1198532575724044398).
+- The last 6 bits mean lower bits, with the lowest bit being a number-one.
+
 ## Installation
 
 ```
@@ -60,3 +72,36 @@ Time:        49.616 s
 Ran all test suites matching /message.test.ts/i.
 
 ```
+
+## References
+
+### Actions and Reducer
+
+- Documentation
+
+https://docs.minaprotocol.com/zkapps/o1js/actions-and-reducer
+
+- Examples
+
+https://github.com/o1-labs/o1js/tree/main/src/examples/zkapps/reducer
+
+- Discussion
+
+https://github.com/o1-labs/o1js/pull/1300
+
+### Bitwise operations
+
+- Documentation
+
+https://docs.minaprotocol.com/zkapps/o1js/bitwise-operations
+
+- Article
+
+https://blog.o1labs.org/whats-new-in-o1js-january-2024-ea2a38b6bd6c
+
+- Discussion
+
+https://discord.com/channels/484437221055922177/1195376536379994132
+https://discord.com/channels/484437221055922177/915745847692636181/1038786367532056586
+https://discord.com/channels/484437221055922177/915745847692636181/1006821136450990161
+https://discord.com/channels/484437221055922177/915745847692636181/1006821143241555979

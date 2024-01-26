@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { describe, expect, it } from "@jest/globals";
 import {
   Field,
@@ -26,6 +25,21 @@ describe("Message SmartContract", () => {
   const extraUserPrivateKey = Local.testAccounts[1].privateKey;
   const extraUser = extraUserPrivateKey.toPublicKey();
   const messages: Field[] = [];
+  const invalidMessages: Field[] = [];
+
+  it(`should test conversion from field to boolean`, async () => {
+    const numbers = [0, 0xff, 0x3f, 0x7f, 0x80];
+    const answers = [0, 0x3f, 0x3f, 0x3f, 0x00];
+    for (let i = 0; i < numbers.length; i++) {
+      const number = numbers[i];
+      const message = Field.from(number);
+      const bits = fieldToBoolean(message);
+      expect(bits.length).toBe(7);
+      let answer = 0;
+      for (const bit of bits) answer = (answer << 1) | (bit ? 1 : 0);
+      expect(answer).toBe(answers[i]);
+    }
+  });
 
   it(`should compile the SmartContract`, async () => {
     console.log("Compiling the SmartContract...");
@@ -56,8 +70,17 @@ describe("Message SmartContract", () => {
 
   it(`should create messages`, async () => {
     console.time("Created messages");
-    for (let i = 0; i < NUMBER_OF_USERS; i++) {
-      messages.push(Field.random());
+    while (
+      messages.length < NUMBER_OF_USERS ||
+      invalidMessages.length < NUMBER_OF_USERS
+    ) {
+      const message = Field.random();
+      const isValid = isMessageValid(message);
+      if (isValid && messages.length < NUMBER_OF_USERS) {
+        messages.push(message);
+      } else if (!isValid && invalidMessages.length < NUMBER_OF_USERS) {
+        invalidMessages.push(message);
+      }
     }
     console.timeEnd("Created messages");
   });
@@ -135,9 +158,40 @@ describe("Message SmartContract", () => {
     expect(added).toBe(false);
   });
 
+  it(`should send first message from user`, async () => {
+    console.time("Sent first message");
+    const tx = await Mina.transaction({ sender: users[0] }, () => {
+      zkApp.sendMessage(messages[0]);
+    });
+    await tx.prove();
+    await tx.sign([usersPrivateKeys[0]]).send();
+    console.timeEnd("Sent first message");
+  });
+
+  it(`should not send messages with invalid flags`, async () => {
+    console.time("Sent invalid messages");
+    for (let i = 0; i < NUMBER_OF_USERS; i++) {
+      let isSent = true;
+      try {
+        await Mina.transaction({ sender: users[1] }, () => {
+          zkApp.sendMessage(invalidMessages[i]);
+        });
+        console.error(
+          `Invalid message ${i} was sent`,
+          invalidMessages[i].toJSON(),
+          fieldToBoolean(invalidMessages[i])
+        );
+      } catch (e) {
+        isSent = false;
+      }
+      expect(isSent).toBe(false);
+    }
+    console.timeEnd("Sent invalid messages");
+  });
+
   it(`should send messages from users`, async () => {
     console.time("Sent messages");
-    for (let i = 0; i < NUMBER_OF_USERS; i++) {
+    for (let i = 1; i < NUMBER_OF_USERS; i++) {
       const tx = await Mina.transaction({ sender: users[i] }, () => {
         zkApp.sendMessage(messages[i]);
       });
@@ -192,3 +246,40 @@ describe("Message SmartContract", () => {
     expect(Number(counter.toBigint())).toBe(NUMBER_OF_USERS);
   });
 });
+
+function fieldToBoolean(message: Field): boolean[] {
+  const mask = BigInt(0x3f);
+  const flags = message.toBigInt() & mask;
+  const bitsStr = flags.toString(2).padStart(6, "0") + "0";
+  let reverseString = "";
+  for (const char of bitsStr) reverseString = char + reverseString;
+  const bits: boolean[] = reverseString.split("").map((bit) => bit === "1");
+  return bits;
+}
+
+function isMessageValid(message: Field): boolean {
+  const bits = fieldToBoolean(message);
+  let isValid = true;
+  if (bits[1] === true) {
+    if (
+      bits[2] === true ||
+      bits[3] === true ||
+      bits[4] === true ||
+      bits[5] === true ||
+      bits[6] === true
+    ) {
+      isValid = false;
+    }
+  }
+  if (bits[2] === true) {
+    if (bits[3] !== true) {
+      isValid = false;
+    }
+  }
+  if (bits[4] === true) {
+    if (bits[5] !== false || bits[6] !== false) {
+      isValid = false;
+    }
+  }
+  return isValid;
+}

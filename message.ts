@@ -11,9 +11,11 @@ import {
   DeployArgs,
   Permissions,
   UInt32,
+  Gadgets,
+  Provable,
 } from "o1js";
 
-export const MAX_USERS = 2;
+export const MAX_USERS = 10;
 
 export class MessageEvent extends Struct({
   sender: PublicKey,
@@ -93,6 +95,37 @@ export class Message extends SmartContract {
   }
 
   @method sendMessage(message: Field) {
+    const mask = Field.from(0x3f);
+    const flags = Gadgets.and(message, mask, 254);
+    const bits = flags.toBits(6);
+
+    // bits[0] is the flag 1
+    const condition1 = Provable.if(
+      bits[0].equals(Bool(true)),
+      bits[1].or(bits[2]).or(bits[3]).or(bits[4]).or(bits[5]),
+      Bool(false)
+    );
+    condition1.assertEquals(Bool(false));
+
+    // bits[1] is the flag 2
+    // bits[2] is the flag 3
+    const condition2 = Provable.if(
+      bits[1].equals(Bool(true)),
+      bits[2],
+      Bool(true)
+    );
+    condition2.assertEquals(Bool(true));
+
+    // bits[3] is the flag 4
+    // bits[4] is the flag 5
+    // bits[5] is the flag 6
+    const condition3 = Provable.if(
+      bits[3].equals(Bool(true)),
+      bits[4].or(bits[5]),
+      Bool(false)
+    );
+    condition3.assertEquals(Bool(false));
+
     const pendingActions = this.reducer.getActions({
       fromActionState: Reducer.initialActionState,
     });
