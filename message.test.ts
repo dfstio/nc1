@@ -6,11 +6,13 @@ import {
   Mina,
   AccountUpdate,
   UInt32,
+  Cache,
 } from "o1js";
 import { Message, MAX_USERS, MessageEvent } from "./message";
 
 const NUMBER_OF_USERS = MAX_USERS;
 const FAUCET_AMOUNT = 1_000_000_000n;
+const DEBUG = false;
 
 describe("Message SmartContract", () => {
   const Local = Mina.LocalBlockchain();
@@ -43,8 +45,9 @@ describe("Message SmartContract", () => {
 
   it(`should compile the SmartContract`, async () => {
     console.log("Compiling the SmartContract...");
+    const cache: Cache = Cache.FileSystem("./cache");
     console.time("compiled");
-    await Message.compile();
+    await Message.compile({ cache });
     console.timeEnd("compiled");
   });
 
@@ -102,11 +105,13 @@ describe("Message SmartContract", () => {
   });
 
   it(`should add first users's address to the contract storage`, async () => {
+    console.time("Added first user");
     const tx = await Mina.transaction({ sender: admin }, () => {
       zkApp.add(users[0]);
     });
     await tx.prove();
     await tx.sign([adminPrivateKey]).send();
+    console.timeEnd("Added first user");
   });
 
   it(`should not add first users's address second time to the contract storage`, async () => {
@@ -142,6 +147,7 @@ describe("Message SmartContract", () => {
       });
       await tx.prove();
       await tx.sign([adminPrivateKey]).send();
+      await Memory.info(`Added ${i + 1} users`);
     }
     console.timeEnd("Added users");
   });
@@ -156,16 +162,7 @@ describe("Message SmartContract", () => {
       added = false;
     }
     expect(added).toBe(false);
-  });
-
-  it(`should send first message from user`, async () => {
-    console.time("Sent first message");
-    const tx = await Mina.transaction({ sender: users[0] }, () => {
-      zkApp.sendMessage(messages[0]);
-    });
-    await tx.prove();
-    await tx.sign([usersPrivateKeys[0]]).send();
-    console.timeEnd("Sent first message");
+    await Memory.info(`should not add extra user`);
   });
 
   it(`should not send messages with invalid flags`, async () => {
@@ -184,9 +181,22 @@ describe("Message SmartContract", () => {
       } catch (e) {
         isSent = false;
       }
+      await Memory.info(`Sent ${i + 1} invalid messages`);
       expect(isSent).toBe(false);
     }
     console.timeEnd("Sent invalid messages");
+    await Memory.info(`Sent invalid messages`);
+  });
+
+  it(`should send first message from user`, async () => {
+    console.time("Sent first message");
+    const tx = await Mina.transaction({ sender: users[0] }, () => {
+      zkApp.sendMessage(messages[0]);
+    });
+    await tx.prove();
+    await tx.sign([usersPrivateKeys[0]]).send();
+    console.timeEnd("Sent first message");
+    await Memory.info(`Sent first message`);
   });
 
   it(`should send messages from users`, async () => {
@@ -197,8 +207,10 @@ describe("Message SmartContract", () => {
       });
       await tx.prove();
       await tx.sign([usersPrivateKeys[i]]).send();
+      await Memory.info(`Sent ${i + 1} messages`);
     }
     console.timeEnd("Sent messages");
+    await Memory.info(`Sent messages`, true);
   });
 
   it(`should check events`, async () => {
@@ -215,6 +227,7 @@ describe("Message SmartContract", () => {
       expect(message.sender.toBase58()).toBe(users[i].toBase58());
       expect(message.message.toJSON()).toBe(messages[i].toJSON());
     }
+    await Memory.info(`should check events`, true);
   });
 
   it(`should not send message second time`, async () => {
@@ -227,6 +240,7 @@ describe("Message SmartContract", () => {
       sent = false;
     }
     expect(sent).toBe(false);
+    await Memory.info(`should not send message second time`);
   });
 
   it(`should not send message from extra user`, async () => {
@@ -239,11 +253,13 @@ describe("Message SmartContract", () => {
       sent = false;
     }
     expect(sent).toBe(false);
+    await Memory.info(`should not send message from extra user`);
   });
 
   it(`should check the counter`, async () => {
     const counter = zkApp.counter.get();
     expect(Number(counter.toBigint())).toBe(NUMBER_OF_USERS);
+    await Memory.info(`should check the counter`);
   });
 });
 
@@ -282,4 +298,54 @@ function isMessageValid(message: Field): boolean {
     }
   }
   return isValid;
+}
+
+class Memory {
+  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+  static rss: number = 0;
+  constructor() {
+    Memory.rss = 0;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+  public static async info(description = ``, fullInfo = false) {
+    const memoryData = process.memoryUsage();
+    const formatMemoryUsage = (data: number) =>
+      `${Math.round(data / 1024 / 1024)} MB`;
+    const oldRSS = Memory.rss;
+    Memory.rss = Math.round(memoryData.rss / 1024 / 1024);
+
+    const memoryUsage = fullInfo
+      ? {
+          step: `${description}:`,
+          rssDelta: `${(oldRSS === 0
+            ? 0
+            : Memory.rss - oldRSS
+          ).toString()} MB -> Resident Set Size memory change`,
+          rss: `${formatMemoryUsage(
+            memoryData.rss
+          )} -> Resident Set Size - total memory allocated`,
+          heapTotal: `${formatMemoryUsage(
+            memoryData.heapTotal
+          )} -> total size of the allocated heap`,
+          heapUsed: `${formatMemoryUsage(
+            memoryData.heapUsed
+          )} -> actual memory used during the execution`,
+          external: `${formatMemoryUsage(
+            memoryData.external
+          )} -> V8 external memory`,
+        }
+      : `RSS memory: ${description}: ${formatMemoryUsage(memoryData.rss)}${
+          oldRSS === 0
+            ? ``
+            : `, changed by ` + (Memory.rss - oldRSS).toString() + ` MB`
+        }`;
+
+    if (DEBUG) console.log(memoryUsage);
+    await sleep(100);
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

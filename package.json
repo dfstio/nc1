@@ -4,7 +4,8 @@
   "author": "DFST",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "jest message.test.ts"
+    "test": "jest message.test.ts",
+    "coverage": "jest --coverage message.test.ts"
   },
   "dependencies": {
     "o1js": "^0.15.3"

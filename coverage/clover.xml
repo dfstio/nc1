@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1706276631225" clover="3.2.0">
+  <project timestamp="1706276631225" name="All files">
+    <metrics statements="49" coveredstatements="49" conditionals="0" coveredconditionals="0" methods="8" coveredmethods="8" elements="57" coveredelements="57" complexity="0" loc="49" ncloc="49" packages="1" files="1" classes="1"/>
+    <file name="message.ts" path="/Users/mike/Documents/DeFi/MinaNFT/Navigators/nc1/message.ts">
+      <metrics statements="49" coveredstatements="49" conditionals="0" coveredconditionals="0" methods="8" coveredmethods="8"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="18" count="1" type="stmt"/>
+      <line num="20" count="1" type="stmt"/>
+      <line num="25" count="1" type="stmt"/>
+      <line num="31" count="1" type="stmt"/>
+      <line num="32" count="27" type="stmt"/>
+      <line num="33" count="27" type="stmt"/>
+      <line num="36" count="2" type="stmt"/>
+      <line num="37" count="2" type="stmt"/>
+      <line num="43" count="27" type="stmt"/>
+      <line num="47" count="27" type="stmt"/>
+      <line num="52" count="1" type="stmt"/>
+      <line num="53" count="39" type="stmt"/>
+      <line num="54" count="39" type="stmt"/>
+      <line num="55" count="38" type="stmt"/>
+      <line num="59" count="38" type="stmt"/>
+      <line num="63" count="740" type="stmt"/>
+      <line num="64" count="740" type="stmt"/>
+      <line num="73" count="38" type="stmt"/>
+      <line num="75" count="37" type="stmt"/>
+      <line num="80" count="720" type="stmt"/>
+      <line num="89" count="37" type="stmt"/>
+      <line num="91" count="36" type="stmt"/>
+      <line num="94" count="36" type="stmt"/>
+      <line num="97" count="1" type="stmt"/>
+      <line num="98" count="57" type="stmt"/>
+      <line num="99" count="57" type="stmt"/>
+      <line num="100" count="57" type="stmt"/>
+      <line num="103" count="57" type="stmt"/>
+      <line num="108" count="57" type="stmt"/>
+      <line num="112" count="51" type="stmt"/>
+      <line num="117" count="51" type="stmt"/>
+      <line num="122" count="49" type="stmt"/>
+      <line num="127" count="49" type="stmt"/>
+      <line num="129" count="47" type="stmt"/>
+      <line num="133" count="47" type="stmt"/>
+      <line num="137" count="940" type="stmt"/>
+      <line num="138" count="940" type="stmt"/>
+      <line num="146" count="47" type="stmt"/>
+      <line num="148" count="46" type="stmt"/>
+      <line num="152" count="920" type="stmt"/>
+      <line num="153" count="920" type="stmt"/>
+      <line num="154" count="920" type="stmt"/>
+      <line num="155" count="920" type="stmt"/>
+      <line num="164" count="46" type="stmt"/>
+      <line num="165" count="45" type="stmt"/>
+      <line num="173" count="45" type="stmt"/>
+      <line num="174" count="45" type="stmt"/>
+      <line num="175" count="45" type="stmt"/>
+    </file>
+  </project>
+</coverage>

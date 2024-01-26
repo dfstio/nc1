@@ -4,7 +4,7 @@
 
 ### Token accounts
 
-Token accounts can be used for the storage of all the information required. The price to create one account is 1 MINA, therefore the total cost of this solution is > 100 MINA.
+Token accounts can be used for the storage of all the information required. The price to create one account is 1 MINA, therefore the total cost of this solution is > 100 MINA. This solution is being used in [MinaNFT library](https://github.com/dfstio/minanft-lib/blob/master/src/contract/names.ts#L71)
 
 ### Using events and actions storage
 
@@ -30,45 +30,72 @@ cd nc1
 yarn
 ```
 
-## Running
+## Test
+
+### Running test
 
 ```
 yarn test
 ```
 
-## Test results
+To make testing faster, you can temporarily change MAX_USERS from 100 to 10 and compile the contract two times before the testing.
+
+### Test coverage
+
+```
+yarn coverage
+```
+
+Test coverage is 100 percent. Details are in the jest report in the coverage folder.
+
+```
+------------|---------|----------|---------|---------|-------------------
+File        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+------------|---------|----------|---------|---------|-------------------
+All files   |     100 |      100 |     100 |     100 |
+ message.ts |     100 |      100 |     100 |     100 |
+------------|---------|----------|---------|---------|-------------------
+```
+
+### Test results
 
 ```
 nc1 % yarn test
-[12:05:32 AM] Compiling the SmartContract...
-[12:05:34 AM] compiled: 2.018s
-[12:05:35 AM] Created users: 2.211ms
-[12:05:35 AM] Created messages: 0.038ms
-[12:05:36 AM] Funded user's accounts: 1.055s
-[12:06:00 AM] Added users: 10.975s
-[12:06:20 AM] Sent messages: 20.709s
+[5:29:47 PM] Compiling the SmartContract...
+[5:29:50 PM] compiled: 3.313s
+[5:29:51 PM] Created users: 10.78ms
+[5:29:51 PM] Created messages: 0.636ms
+[5:29:56 PM] Funded user's accounts: 5.071s
+[5:30:08 PM] Added first user: 12.010s
+[5:31:43 PM] Added users: 1:34.845 (m:ss.mmm)
+[5:31:47 PM] Sent invalid messages: 3.492s
+[5:31:58 PM] Sent first message: 10.765s
+[5:33:34 PM] Sent messages: 1:36.197 (m:ss.mmm)
  PASS  ./message.test.ts
   Message SmartContract
-    ✓ should compile the SmartContract (2028 ms)
-    ✓ should deploy the SmartContract (534 ms)
-    ✓ should create users (2 ms)
-    ✓ should create messages (1 ms)
-    ✓ should fund users's accounts (1055 ms)
-    ✓ should add first users's address to the contract storage (12607 ms)
-    ✓ should not add first users's address second time to the contract storage (84 ms)
-    ✓ should not add user from non-admin account (71 ms)
-    ✓ should add users's addresses to the contract storage (10975 ms)
-    ✓ should not add extra user (94 ms)
-    ✓ should send messages from users (20709 ms)
-    ✓ should check events (3 ms)
-    ✓ should not send message second time (88 ms)
-    ✓ should not send message from extra user (75 ms)
-    ✓ should check the counter (3 ms)
+    ✓ should test conversion from field to boolean (1 ms)
+    ✓ should compile the SmartContract (3322 ms)
+    ✓ should deploy the SmartContract (505 ms)
+    ✓ should create users (10 ms)
+    ✓ should create messages
+    ✓ should fund users's accounts (5071 ms)
+    ✓ should add first users's address to the contract storage (12010 ms)
+    ✓ should not add first users's address second time to the contract storage (297 ms)
+    ✓ should not add user from non-admin account (287 ms)
+    ✓ should add users's addresses to the contract storage (94847 ms)
+    ✓ should not add extra user (444 ms)
+    ✓ should not send messages with invalid flags (3594 ms)
+    ✓ should send first message from user (10867 ms)
+    ✓ should send messages from users (96298 ms)
+    ✓ should check events (107 ms)
+    ✓ should not send message second time (465 ms)
+    ✓ should not send message from extra user (400 ms)
+    ✓ should check the counter (106 ms)
 
 Test Suites: 1 passed, 1 total
-Tests:       15 passed, 15 total
+Tests:       18 passed, 18 total
 Snapshots:   0 total
-Time:        49.616 s
+Time:        229.745 s, estimated 258 s
 Ran all test suites matching /message.test.ts/i.
 
 ```
